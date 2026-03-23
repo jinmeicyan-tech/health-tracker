@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="体質改善ログ">
+<meta name="theme-color" content="#001E61">
+<meta name="mobile-web-app-capable" content="yes">
+<title>体質改善ログ</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Noto Sans JP',sans-serif;background:#fff;color:rgba(0,0,0,0.85);max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:80px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes fadeInUp{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+input[type=number]::-webkit-inner-spin-button{opacity:1}
+textarea{resize:vertical}
+.header{padding:16px 20px;background:#001E61;color:#fff;display:flex;justify-content:space-between;align-items:center}
+.header-logo{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:18px}
+.header h1{margin:0;font-size:18px;font-weight:700;color:#fff}
+.header .sub{margin:0;font-size:11px;color:rgba(255,255,255,0.5)}
+.settings-btn{background:rgba(255,255,255,0.15);border:none;border-radius:8px;padding:8px 10px;cursor:pointer;color:#fff;font-size:16px}
+.tabs{display:flex;border-bottom:1px solid #E5E5EA;background:#fff}
+.tabs button{flex:1;padding:12px;border:none;cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:600;background:#fafafa;color:#999;border-bottom:2.5px solid transparent}
+.tabs button.active{background:#fff;color:#001E61;border-bottom-color:#001E61}
+.setup-banner{margin:16px;padding:16px;background:#FFFBE6;border:1px solid #FFE58F;border-radius:12px;display:flex;align-items:center;gap:10px}
+.setup-banner .btn{background:#001E61;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans JP',sans-serif}
+.summary-strip{display:flex;gap:8px;overflow-x:auto;padding:0 0 4px}
+.summary-card{background:#F7F7FF;border-radius:10px;padding:8px 14px;min-width:74px;text-align:center;flex-shrink:0;border:1px solid #E8E8F4}
+.summary-card .label{font-size:11px;color:#999}
+.summary-card .val{font-size:18px;font-weight:700;color:#001E61}
+.summary-card .unit{font-size:11px;color:#999}
+.drink-strip{display:flex;gap:6px;overflow-x:auto;padding:0 0 4px}
+.drink-chip{background:#EEF0FA;border:1px solid #E8E8F4;border-radius:8px;padding:5px 10px;flex-shrink:0;display:flex;align-items:center;gap:4px;font-size:12px}
+.grid9{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.grid9 button{background:#F7F7FF;border:1px solid #E8E8F4;border-radius:14px;padding:18px 8px 14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .15s ease;font-family:'Noto Sans JP',sans-serif}
+.grid9 button:active{transform:scale(0.96);background:#E8EDF7}
+.grid9 button .emoji{font-size:30px}
+.grid9 button .lbl{font-size:13px;font-weight:600;color:#001E61}
+.send-row{display:flex;gap:10px;margin-bottom:16px}
+.send-btn{flex:1;border-radius:12px;padding:14px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s ease;border:none}
+.send-btn.has-data{background:#001E61;color:#fff}
+.send-btn.no-data{background:#F7F7FF;color:#999;border:1px solid #E5E5EA}
+.send-btn .badge{background:rgba(255,255,255,0.25);border-radius:10px;padding:2px 8px;font-size:12px}
+.csv-btn{background:#F7F7FF;border:1px solid #E5E5EA;border-radius:12px;padding:14px 18px;cursor:pointer;font-size:14px;color:#555;font-family:'Noto Sans JP',sans-serif;font-weight:600}
+.record-item{background:#fff;border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border:1px solid #E5E5EA;margin-bottom:6px}
+.record-item .info{font-size:13px;display:flex;align-items:center;gap:6px;flex:1;min-width:0}
+.record-item .meta{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.record-item .time{font-size:12px;color:#999}
+.del-btn{background:none;border:none;cursor:pointer;color:#cc3333;font-size:16px;padding:2px 4px;line-height:1;border-radius:4px}
+.del-btn:active{background:#fff0f0}
+.color-dot{display:inline-block;width:14px;height:14px;border-radius:50%;border:1px solid #E5E5EA}
+.sent-mark{font-size:10px;color:#2d8a2d;margin-left:2px}
+.overlay{position:fixed;inset:0;background:rgba(0,30,97,0.18);z-index:100;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;backdrop-filter:blur(2px)}
+.modal{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:85vh;overflow:auto;padding:20px 20px 32px;animation:slideUp .3s ease;box-shadow:0 -4px 30px rgba(0,0,0,0.1)}
+.modal .handle{width:40px;height:4px;background:#E5E5EA;border-radius:2px;margin:0 auto 16px}
+.modal h2{margin:0 0 16px;font-size:18px;color:#001E61;font-weight:700}
+.modal p.hint{color:#999;font-size:13px;margin:0 0 12px}
+.btn{border-radius:10px;padding:12px 16px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:600;transition:all .15s ease;width:100%;text-align:center;display:block}
+.btn-default{background:#F7F7FF;color:rgba(0,0,0,0.85);border:1px solid #E5E5EA}
+.btn-primary{background:#001E61;color:#fff;border:1px solid #001E61}
+.btn-selected{background:#E8EDF7;color:#001E61;border:2px solid #001E61;font-weight:700}
+.input{width:100%;padding:12px;border-radius:10px;border:1px solid #E5E5EA;background:#F5F5FB;color:rgba(0,0,0,0.85);font-size:16px;outline:none;font-family:'Noto Sans JP',sans-serif;box-sizing:border-box}
+.time-input{background:#fff;border:2px solid rgba(0,30,97,0.25);color:#001E61;font-size:20px;font-weight:700;text-align:center;letter-spacing:2px;padding:14px 12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.urine-btn{border-radius:14px;padding:14px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:all .15s ease;background:#fff;border:2px solid #E5E5EA}
+.urine-btn.selected{background:#E8EDF7;border-color:#001E61}
+.urine-swatch{width:40px;height:40px;border-radius:50%;border:2px solid rgba(0,0,0,0.08)}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#001E61;color:#fff;padding:10px 24px;border-radius:20px;font-size:14px;z-index:999;box-shadow:0 4px 20px rgba(0,30,97,0.25);animation:fadeInUp .3s ease;white-space:nowrap}
+.confirm-bar{background:#fff5f5;border:1px solid #ffcccc;border-radius:10px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.confirm-bar span{font-size:13px;color:#cc3333}
+.confirm-bar .cancel{background:#fff;border:1px solid #E5E5EA;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;color:#555}
+.confirm-bar .danger{background:#cc3333;border:none;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;color:#fff}
+.gas-ok{background:#f0faf0;border:1px solid #b3e6b3;border-radius:8px;padding:8px 12px;margin-bottom:16px;font-size:12px;color:#2d8a2d}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script>
+const {useState,useEffect,useCallback,createElement:h}=React;
+const STORAGE_KEY="health_tracker_data",SETTINGS_KEY="health_tracker_settings";
+const BRISTOL=[{id:1,e:"🟤",l:"コロコロ",d:"硬い塊"},{id:2,e:"🟫",l:"ゴツゴツ",d:"塊が連なった"},{id:3,e:"🍫",l:"ひび割れ",d:"やや硬い"},{id:4,e:"🌿",l:"普通",d:"なめらか"},{id:5,e:"☁️",l:"やわらか",d:"柔らかい塊"},{id:6,e:"💧",l:"泥状",d:"ふにゃふにゃ"},{id:7,e:"🌊",l:"水様",d:"水っぽい"}];
+const UCOLORS=[{id:1,c:"#f5f5dc",l:"透明〜薄黄",d:"十分な水分"},{id:2,c:"#f0e68c",l:"薄い黄色",d:"正常"},{id:3,c:"#daa520",l:"黄色",d:"正常"},{id:4,c:"#b8860b",l:"濃い黄色",d:"水分やや不足"},{id:5,c:"#cd853f",l:"琥珀色",d:"水分不足"},{id:6,c:"#8b6914",l:"オレンジ〜茶",d:"要注意"}];
+const DRINKS=[{id:"water",e:"💧",l:"水"},{id:"tea",e:"🍵",l:"お茶・コーヒー"},{id:"protein",e:"🥛",l:"プロテイン"},{id:"juice",e:"🧃",l:"ジュース"},{id:"alcohol",e:"🍺",l:"アルコール"}];
+const DAMOUNTS=[{id:"cup",l:"コップ1杯",ml:200},{id:"mug",l:"マグカップ",ml:350},{id:"pet500",l:"ペットボトル500ml",ml:500},{id:"pet1000",l:"1リットル",ml:1000}];
+const MEALS=[{id:"breakfast",e:"🌅",l:"朝食"},{id:"lunch",e:"☀️",l:"昼食"},{id:"dinner",e:"🌙",l:"夕食"},{id:"snack",e:"🍪",l:"間食"}];
+const EXERCISES=[{id:"walk",e:"🚶",l:"ウォーキング"},{id:"run",e:"🏃",l:"ランニング"},{id:"gym",e:"🏋️",l:"筋トレ"},{id:"other",e:"⚡",l:"その他"}];
+const TYPELABELS={bowel:"🚽 排便",urination:"💧 排尿",meal:"🍽️ 食事",drink:"🥤 飲み物",weight:"⚖️ 体重",sleep:"😴 睡眠",exercise:"🏃 運動",diary:"💡 気づき"};
+const now=()=>{const d=new Date();return{date:d.toLocaleDateString("ja-JP"),time:d.toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"}),iso:d.toISOString()}};
+const getDetail=r=>{switch(r.type){case"bowel":return r.bristol?`スケール ${r.bristol}`:"記録済み";case"urination":{const u=UCOLORS.find(c=>c.id===r.colorId);return u?u.l:"記録済み"}case"meal":return `${(MEALS.find(m=>m.id===r.mealType)||{}).l||""} ${r.content||""}`;case"drink":{const c=DRINKS.find(c=>c.id===r.category);return `${c?c.l:""} ${r.amount||""}ml`}case"weight":return `${r.kg||""}kg / ${r.fat||""}%`;case"sleep":return `${r.bed||""} → ${r.wake||""}`;case"exercise":{const e=EXERCISES.find(e=>e.id===r.exerciseType);let s=e?e.l:"";if(r.minutes)s+=` ${r.minutes}分`;if(r.steps)s+=` ${r.steps}歩`;return s}case"diary":return(r.content||"").slice(0,30)+((r.content||"").length>30?"…":"");default:return""}};
+
+function App(){
+  const[records,setRecords]=useState([]);
+  const[modal,setModal]=useState(null);
+  const[toast,setToast]=useState(null);
+  const[view,setView]=useState("home");
+  const[confirmDel,setConfirmDel]=useState(false);
+  const[sending,setSending]=useState(false);
+  const[settings,setSettings]=useState({userName:"",gasUrl:""});
+  const[editName,setEditName]=useState("");
+  const[editGas,setEditGas]=useState("");
+  const[bristol,setBristol]=useState(null);
+  const[uColor,setUColor]=useState(null);
+  const[dCat,setDCat]=useState(null);
+  const[dAmt,setDAmt]=useState(null);
+  const[mType,setMType]=useState(null);
+  const[mText,setMText]=useState("");
+  const[wVal,setWVal]=useState("");
+  const[bFat,setBFat]=useState("");
+  const[sBed,setSBed]=useState("23:00");
+  const[sWake,setSWake]=useState("07:00");
+  const[exType,setExType]=useState(null);
+  const[exMin,setExMin]=useState("");
+  const[exSteps,setExSteps]=useState("");
+  const[diary,setDiary]=useState("");
+
+  useEffect(()=>{try{const s=localStorage.getItem(STORAGE_KEY);if(s)setRecords(JSON.parse(s))}catch(e){}try{const s=localStorage.getItem(SETTINGS_KEY);if(s)setSettings(JSON.parse(s))}catch(e){}},[]);
+  useEffect(()=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(records))},[records]);
+  useEffect(()=>{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings))},[settings]);
+
+  const addRec=useCallback((type,data)=>{setRecords(p=>[{id:Date.now(),type,...now(),...data},...p])},[]);
+  const showT=msg=>{setToast(msg);setTimeout(()=>setToast(null),2200)};
+  const delRec=id=>{setRecords(p=>p.filter(r=>r.id!==id));showT("🗑️ 削除しました")};
+  const delAll=()=>{setRecords([]);setConfirmDel(false);showT("🗑️ 全データを削除しました")};
+  const reset=()=>{setBristol(null);setUColor(null);setDCat(null);setDAmt(null);setMType(null);setMText("");setWVal("");setBFat("");setSBed("23:00");setSWake("07:00");setExType(null);setExMin("");setExSteps("");setDiary("")};
+  const openM=t=>{reset();if(t==="settings"){setEditName(settings.userName);setEditGas(settings.gasUrl)}setModal(t)};
+  const closeM=()=>{setModal(null);reset()};
+
+  const unsent=records.filter(r=>!r.sentAt);
+  const unsentN=unsent.length;
+
+  const sendToCoach=async()=>{
+    if(!settings.gasUrl){openM("settings");showT("先にGAS URLを設定してください");return}
+    if(!settings.userName){openM("settings");showT("先に名前を設定してください");return}
+    if(unsentN===0){showT("送信するデータがありません");return}
+    setSending(true);
+    try{
+      const cnt=unsentN;
+      const payload=JSON.stringify({name:settings.userName,records:unsent});
+      let iframe=document.getElementById("_gas_iframe");
+      if(!iframe){iframe=document.createElement("iframe");iframe.id="_gas_iframe";iframe.name="_gas_iframe";iframe.style.display="none";document.body.appendChild(iframe)}
+      let form=document.getElementById("_gas_form");
+      if(form)form.remove();
+      form=document.createElement("form");form.id="_gas_form";form.method="POST";form.action=settings.gasUrl;form.target="_gas_iframe";form.style.display="none";
+      const input=document.createElement("input");input.type="hidden";input.name="data";input.value=payload;
+      form.appendChild(input);document.body.appendChild(form);form.submit();
+      await new Promise(r=>setTimeout(r,3000));
+      const st=new Date().toISOString();
+      setRecords(p=>p.map(r=>r.sentAt?r:{...r,sentAt:st}));
+      showT(`📤 ${cnt}件をコーチに送信しました`)
+    }catch(e){showT("通信エラー: "+e.message)}
+    finally{setSending(false)}
+  };
+
+  const exportCSV=()=>{
+    if(!records.length){showT("データがありません");return}
+    const h=["日付","時刻","種類","詳細","送信済み"];
+    const rows=records.map(r=>[r.date,r.time,TYPELABELS[r.type]||r.type,getDetail(r),r.sentAt?"済":"未"].map(v=>`"${v}"`).join(","));
+    const csv="\uFEFF"+[h.join(","),...rows].join("\n");
+    const b=new Blob([csv],{type:"text/csv;charset=utf-8"});
+    const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=`health_log_${new Date().toISOString().split("T")[0]}.csv`;a.click();URL.revokeObjectURL(u);
+    showT("📤 CSVをエクスポートしました")
+  };
+
+  const today=new Date().toLocaleDateString("ja-JP");
+  const todayRecs=records.filter(r=>r.date===today);
+  const todayDrinks=todayRecs.filter(r=>r.type==="drink");
+  const counts={b:todayRecs.filter(r=>r.type==="bowel").length,u:todayRecs.filter(r=>r.type==="urination").length,m:todayRecs.filter(r=>r.type==="meal").length,d:todayDrinks.reduce((s,r)=>s+(r.amount||0),0)};
+  const dBreak=DRINKS.map(c=>({...c,t:todayDrinks.filter(r=>r.category===c.id).reduce((s,r)=>s+(r.amount||0),0)})).filter(c=>c.t>0);
+
+  const recItem=(r,showDate)=>h("div",{className:"record-item",key:r.id},
+    h("div",{className:"info"},
+      TYPELABELS[r.type]||r.type,
+      r.type==="urination"&&r.colorId?h("span",{className:"color-dot",style:{background:(UCOLORS.find(c=>c.id===r.colorId)||{}).c||"#ccc"}}):null,
+      h("span",{style:{color:"#999",fontSize:12,marginLeft:4}},getDetail(r)),
+      r.sentAt?h("span",{className:"sent-mark"},"✓"):null
+    ),
+    h("div",{className:"meta"},
+      showDate?h("div",{style:{textAlign:"right"}},h("div",{style:{fontSize:11,color:"#999"}},r.date),h("div",{style:{fontSize:12,color:"#555"}},r.time)):h("span",{className:"time"},r.time),
+      h("button",{className:"del-btn",onClick:()=>delRec(r.id)},"✕")
+    )
+  );
+
+  const modalContent=()=>{
+    if(modal==="settings")return h("div",null,
+      h("div",{style:{marginBottom:16}},
+        h("label",{style:{fontSize:13,color:"#001E61",display:"block",marginBottom:6,fontWeight:700}},"あなたの名前"),
+        h("input",{className:"input",type:"text",value:editName,onChange:e=>setEditName(e.target.value),placeholder:"例：田中太郎"}),
+        h("p",{style:{fontSize:11,color:"#999",margin:"4px 0 0"}},"コーチに送信するときに使われます")
+      ),
+      h("div",{style:{marginBottom:20}},
+        h("label",{style:{fontSize:13,color:"#001E61",display:"block",marginBottom:6,fontWeight:700}},"GAS WebアプリURL"),
+        h("input",{className:"input",type:"url",value:editGas,onChange:e=>setEditGas(e.target.value),placeholder:"https://script.google.com/macros/s/...",style:{fontSize:13}}),
+        h("p",{style:{fontSize:11,color:"#999",margin:"4px 0 0"}},"コーチから共有されたURLを貼り付けてください")
+      ),
+      settings.gasUrl?h("div",{className:"gas-ok"},"✓ GAS接続設定済み"):null,
+      h("button",{className:"btn btn-primary",onClick:()=>{setSettings({userName:editName.trim(),gasUrl:editGas.trim()});closeM();showT("⚙️ 設定を保存しました")}},"保存する")
+    );
+    if(modal==="bowel")return h("div",null,
+      h("p",{className:"hint"},"ブリストルスケール（任意）"),
+      h("div",{className:"grid2"},BRISTOL.map(b=>h("button",{key:b.id,className:`btn ${bristol===b.id?"btn-selected":"btn-default"}`,onClick:()=>setBristol(bristol===b.id?null:b.id)},b.e," ",b.id,". ",b.l,h("span",{style:{fontSize:11,color:"#999",display:"block"}},b.d)))),
+      h("button",{className:"btn btn-primary",onClick:()=>{addRec("bowel",{bristol});closeM();showT("🚽 排便を記録しました")}},"記録する")
+    );
+    if(modal==="urination")return h("div",null,
+      h("p",{className:"hint"},"尿の色（任意）"),
+      h("div",{className:"grid3"},UCOLORS.map(u=>h("button",{key:u.id,className:`urine-btn ${uColor===u.id?"selected":""}`,onClick:()=>setUColor(uColor===u.id?null:u.id)},h("div",{className:"urine-swatch",style:{background:u.c,boxShadow:uColor===u.id?`0 0 12px ${u.c}66`:"none"}}),h("span",{style:{fontSize:11,fontWeight:600}},u.l),h("span",{style:{fontSize:10,color:"#999"}},u.d)))),
+      h("button",{className:"btn btn-primary",onClick:()=>{addRec("urination",{colorId:uColor});closeM();showT("💧 排尿を記録しました")}},"記録する")
+    );
+    if(modal==="meal")return h("div",null,
+      h("div",{className:"grid4"},MEALS.map(m=>h("button",{key:m.id,className:`btn ${mType===m.id?"btn-selected":"btn-default"}`,onClick:()=>setMType(m.id)},m.e,h("span",{style:{display:"block",fontSize:12}},m.l)))),
+      h("textarea",{className:"input",value:mText,onChange:e=>setMText(e.target.value),placeholder:"何を食べた？（任意）",rows:3,style:{marginBottom:12}}),
+      h("button",{className:"btn btn-primary",onClick:()=>{if(!mType){showT("食事の種類を選んでください");return}addRec("meal",{mealType:mType,content:mText});closeM();showT("🍽️ 食事を記録しました")}},"記録する")
+    );
+    if(modal==="drink")return h("div",null,
+      h("p",{className:"hint"},"種類"),
+      h("div",{className:"grid3"},DRINKS.map(d=>h("button",{key:d.id,className:`btn ${dCat===d.id?"btn-selected":"btn-default"}`,onClick:()=>setDCat(d.id)},d.e,h("span",{style:{display:"block",fontSize:11}},d.l)))),
+      h("p",{className:"hint"},"量"),
+      h("div",{className:"grid2"},DAMOUNTS.map(a=>h("button",{key:a.id,className:`btn ${dAmt===a.ml?"btn-selected":"btn-default"}`,onClick:()=>setDAmt(a.ml)},a.l))),
+      h("button",{className:"btn btn-primary",onClick:()=>{if(!dCat){showT("飲み物の種類を選んでください");return}addRec("drink",{category:dCat,amount:dAmt||200});closeM();showT("🥤 飲み物を記録しました")}},"記録する")
+    );
+    if(modal==="weight")return h("div",null,
+      h("div",{style:{display:"flex",gap:12,marginBottom:16}},
+        h("div",{style:{flex:1}},h("label",{style:{fontSize:13,color:"#555",display:"block",marginBottom:6}},"体重 (kg)"),h("input",{className:"input",type:"number",step:"0.1",value:wVal,onChange:e=>setWVal(e.target.value),placeholder:"65.0"})),
+        h("div",{style:{flex:1}},h("label",{style:{fontSize:13,color:"#555",display:"block",marginBottom:6}},"体脂肪率 (%)"),h("input",{className:"input",type:"number",step:"0.1",value:bFat,onChange:e=>setBFat(e.target.value),placeholder:"20.0"}))
+      ),
+      h("button",{className:"btn btn-primary",onClick:()=>{if(!wVal){showT("体重を入力してください");return}addRec("weight",{kg:parseFloat(wVal),fat:bFat?parseFloat(bFat):null});closeM();showT("⚖️ 体重を記録しました")}},"記録する")
+    );
+    if(modal==="sleep")return h("div",null,
+      h("div",{style:{display:"flex",gap:12,marginBottom:20,alignItems:"flex-end"}},
+        h("div",{style:{flex:1}},h("label",{style:{fontSize:14,color:"#001E61",display:"block",marginBottom:8,fontWeight:700}},"🌙 就寝"),h("input",{className:"input time-input",type:"time",value:sBed,onChange:e=>setSBed(e.target.value)})),
+        h("div",{style:{paddingBottom:18,fontSize:22,color:"#001E61",fontWeight:700}},"→"),
+        h("div",{style:{flex:1}},h("label",{style:{fontSize:14,color:"#001E61",display:"block",marginBottom:8,fontWeight:700}},"☀️ 起床"),h("input",{className:"input time-input",type:"time",value:sWake,onChange:e=>setSWake(e.target.value)}))
+      ),
+      h("button",{className:"btn btn-primary",onClick:()=>{addRec("sleep",{bed:sBed,wake:sWake});closeM();showT("😴 睡眠を記録しました")}},"記録する")
+    );
+    if(modal==="exercise")return h("div",null,
+      h("div",{className:"grid4"},EXERCISES.map(e=>h("button",{key:e.id,className:`btn ${exType===e.id?"btn-selected":"btn-default"}`,onClick:()=>setExType(e.id)},e.e,h("span",{style:{display:"block",fontSize:11}},e.l)))),
+      h("div",{style:{display:"flex",gap:12,marginBottom:16}},
+        h("div",{style:{flex:1}},h("label",{style:{fontSize:12,color:"#555",display:"block",marginBottom:4}},"時間（分）"),h("input",{className:"input",type:"number",value:exMin,onChange:e=>setExMin(e.target.value),placeholder:"30"})),
+        h("div",{style:{flex:1}},h("label",{style:{fontSize:12,color:"#555",display:"block",marginBottom:4}},"歩数"),h("input",{className:"input",type:"number",value:exSteps,onChange:e=>setExSteps(e.target.value),placeholder:"8000"}))
+      ),
+      h("button",{className:"btn btn-primary",onClick:()=>{if(!exType){showT("運動の種類を選んでください");return}addRec("exercise",{exerciseType:exType,minutes:exMin?parseInt(exMin):null,steps:exSteps?parseInt(exSteps):null});closeM();showT("🏃 運動を記録しました")}},"記録する")
+    );
+    if(modal==="diary")return h("div",null,
+      h("p",{className:"hint"},"プログラム中に感じた変化や気づきを記録しましょう"),
+      h("textarea",{className:"input",value:diary,onChange:e=>setDiary(e.target.value),placeholder:"体調の変化、気になったこと、新しく気づいたことなど…",rows:5,style:{marginBottom:12}}),
+      h("button",{className:"btn btn-primary",onClick:()=>{if(!diary.trim()){showT("何か書いてください");return}addRec("diary",{content:diary});closeM();showT("💡 気づきを記録しました")}},"記録する")
+    );
+    return null;
+  };
+
+  const modalTitles={settings:"⚙️ 設定",bowel:"🚽 排便を記録",urination:"💧 排尿を記録",meal:"🍽️ 食事を記録",drink:"🥤 飲み物を記録",weight:"⚖️ 体重・体脂肪率",sleep:"😴 睡眠を記録",exercise:"🏃 運動を記録",diary:"💡 変化・気になったこと"};
+
+  return h("div",null,
+    h("div",{className:"header"},
+      h("div",{style:{display:"flex",alignItems:"center",gap:10}},
+        h("div",{className:"header-logo"},"🧬"),
+        h("div",null,h("h1",null,"体質改善ログ"),h("p",{className:"sub"},settings.userName?`${settings.userName}さん — ${today}`:today))
+      ),
+      h("button",{className:"settings-btn",onClick:()=>openM("settings")},"⚙️")
+    ),
+    !settings.userName?h("div",{className:"setup-banner"},h("span",{style:{fontSize:20}},"👋"),h("div",{style:{flex:1}},h("div",{style:{fontSize:14,fontWeight:600,color:"#8B6914"}},"はじめに名前を設定しましょう"),h("div",{style:{fontSize:12,color:"#A68B3C"}},"コーチにデータを送るために必要です")),h("button",{className:"btn",style:{width:"auto",background:"#001E61",color:"#fff",border:"none",padding:"8px 14px",fontSize:13},onClick:()=>openM("settings")},"設定")):null,
+    h("div",{className:"tabs"},
+      h("button",{className:view==="home"?"active":"",onClick:()=>setView("home")},"📋 記録"),
+      h("button",{className:view==="history"?"active":"",onClick:()=>setView("history")},"📊 履歴")
+    ),
+    view==="home"?h("div",{style:{padding:16}},
+      h("div",{className:"summary-strip",style:{marginBottom:8}},
+        [{l:"排便",v:counts.b,u:"回"},{l:"排尿",v:counts.u,u:"回"},{l:"食事",v:counts.m,u:"回"},{l:"水分合計",v:counts.d,u:"ml"}].map(s=>h("div",{className:"summary-card",key:s.l},h("div",{className:"label"},s.l),h("div",{className:"val"},s.v,h("span",{className:"unit"},s.u))))
+      ),
+      dBreak.length>0?h("div",{className:"drink-strip",style:{marginBottom:12}},dBreak.map(d=>h("div",{className:"drink-chip",key:d.id},h("span",{style:{fontSize:14}},d.e),h("span",{style:{color:"#555"}},d.l),h("span",{style:{fontWeight:700,color:"#001E61"}},d.t+"ml")))):null,
+      h("div",{className:"grid9"},
+        [{id:"bowel",e:"🚽",l:"排便"},{id:"urination",e:"💧",l:"排尿"},{id:"meal",e:"🍽️",l:"食事"},{id:"drink",e:"🥤",l:"飲み物"},{id:"weight",e:"⚖️",l:"体重"},{id:"sleep",e:"😴",l:"睡眠"},{id:"exercise",e:"🏃",l:"運動"},{id:"diary",e:"💡",l:"気づき"}].map(b=>h("button",{key:b.id,onClick:()=>openM(b.id)},h("span",{className:"emoji"},b.e),h("span",{className:"lbl"},b.l)))
+      ),
+      h("div",{className:"send-row"},
+        h("button",{className:`send-btn ${unsentN>0?"has-data":"no-data"}`,onClick:sendToCoach,disabled:sending},sending?"送信中…":"📤 コーチに送信",unsentN>0&&!sending?h("span",{className:"badge"},unsentN+"件"):null),
+        h("button",{className:"csv-btn",onClick:exportCSV},"CSV")
+      ),
+      todayRecs.length>0?h("div",null,h("h3",{style:{fontSize:14,color:"#999",margin:"0 0 10px",fontWeight:600}},`今日の記録 (${todayRecs.length}件)`),todayRecs.slice(0,10).map(r=>recItem(r,false))):null
+    ):null,
+    view==="history"?h("div",{style:{padding:16}},
+      h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}},
+        h("h3",{style:{fontSize:14,color:"#999",margin:0,fontWeight:600}},`全記録 (${records.length}件)`),
+        records.length>0?h("button",{style:{background:"#fff0f0",color:"#cc3333",border:"1px solid #ffcccc",borderRadius:8,padding:"6px 12px",fontSize:12,cursor:"pointer",fontFamily:"'Noto Sans JP',sans-serif"},onClick:()=>setConfirmDel(true)},"全削除"):null
+      ),
+      confirmDel?h("div",{className:"confirm-bar"},h("span",null,"本当に全データを削除しますか？"),h("div",{style:{display:"flex",gap:6}},h("button",{className:"cancel",onClick:()=>setConfirmDel(false)},"キャンセル"),h("button",{className:"danger",onClick:delAll},"削除する"))):null,
+      records.length===0?h("p",{style:{color:"#999",textAlign:"center",padding:40,fontSize:14}},"まだ記録がありません"):null,
+      records.map(r=>recItem(r,true))
+    ):null,
+    modal?h("div",{className:"overlay",onClick:closeM},h("div",{className:"modal",onClick:e=>e.stopPropagation()},h("div",{className:"handle"}),h("h2",null,modalTitles[modal]||""),modalContent())):null,
+    toast?h("div",{className:"toast"},toast):null
+  );
+}
+ReactDOM.createRoot(document.getElementById("app")).render(h(App));
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js')
+      .catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

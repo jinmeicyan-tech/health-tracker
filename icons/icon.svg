@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Ìo -->
+  <rect width="512" height="512" rx="80" fill="#001E61"/>
+
+  <!-- DNA‰[“æt -->
+  <path d="M196 100 C196 140 316 160 316 200 C316 240 196 260 196 300 C196 340 316 360 316 400" 
+        stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <!-- DNA‰[“ót -->
+  <path d="M316 100 C316 140 196 160 196 200 C196 240 316 260 316 300 C316 340 196 360 196 400" 
+        stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
+
+  <!-- *Òiúþ	-->
+  <line x1="196" y1="100" x2="316" y2="100" stroke="rgba(255,255,255,0.6)" stroke-width="10" stroke-linecap="round"/>
+  <line x1="222" y1="150" x2="290" y2="150" stroke="rgba(255,255,255,0.6)" stroke-width="10" stroke-linecap="round"/>
+  <line x1="256" y1="200" x2="256" y2="200" stroke="rgba(255,255,255,0.6)" stroke-width="10" stroke-linecap="round"/>
+  <line x1="222" y1="250" x2="290" y2="250" stroke="rgba(255,255,255,0.6)" stroke-width="10" stroke-linecap="round"/>
+  <line x1="196" y1="300" x2="316" y2="300" stroke="rgba(255,255,255,0.6)" stroke-width="10" stroke-linecap="round"/>
+  <line x1="222" y1="350" x2="290" y2="350" stroke="rgba(255,255,255,0.6)" stroke-width="10" stroke-linecap="round"/>
+  <line x1="196" y1="400" x2="316" y2="400" stroke="rgba(255,255,255,0.6)" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- ¤î¹n}8 -->
+  <circle cx="256" cy="150" r="10" fill="white"/>
+  <circle cx="256" cy="250" r="10" fill="white"/>
+  <circle cx="256" cy="350" r="10" fill="white"/>
+
+  <!-- °éÕè	-->
+  <rect x="168" y="430" width="20" height="40" rx="4" fill="rgba(255,255,255,0.5)"/>
+  <rect x="198" y="415" width="20" height="55" rx="4" fill="rgba(255,255,255,0.7)"/>
+  <rect x="228" y="400" width="20" height="70" rx="4" fill="white"/>
+  <rect x="258" y="410" width="20" height="60" rx="4" fill="rgba(255,255,255,0.7)"/>
+  <rect x="288" y="420" width="20" height="50" rx="4" fill="rgba(255,255,255,0.5)"/>
+  <rect x="318" y="435" width="20" height="35" rx="4" fill="rgba(255,255,255,0.4)"/>
+
+  <!-- °éÕÚ -->
+  <line x1="158" y1="475" x2="348" y2="475" stroke="rgba(255,255,255,0.4)" stroke-width="3" stroke-linecap="round"/>
+</svg>

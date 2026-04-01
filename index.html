@@ -91,21 +91,23 @@ textarea{resize:vertical}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script>
-const {useState,useEffect,useCallback,createElement:h}=React;
+const {useState,useEffect,useCallback,useRef,createElement:h}=React;
 const STORAGE_KEY="health_tracker_data",SETTINGS_KEY="health_tracker_settings";
 const BRISTOL=[{id:1,e:"🟤",l:"コロコロ",d:"硬い塊"},{id:2,e:"🟫",l:"ゴツゴツ",d:"塊が連なった"},{id:3,e:"🍫",l:"ひび割れ",d:"やや硬い"},{id:4,e:"🌿",l:"普通",d:"なめらか"},{id:5,e:"☁️",l:"やわらか",d:"柔らかい塊"},{id:6,e:"💧",l:"泥状",d:"ふにゃふにゃ"},{id:7,e:"🌊",l:"水様",d:"水っぽい"}];
 const UCOLORS=[{id:1,c:"#f5f5dc",l:"透明〜薄黄",d:"十分な水分"},{id:2,c:"#f0e68c",l:"薄い黄色",d:"正常"},{id:3,c:"#daa520",l:"黄色",d:"正常"},{id:4,c:"#b8860b",l:"濃い黄色",d:"水分やや不足"},{id:5,c:"#cd853f",l:"琥珀色",d:"水分不足"},{id:6,c:"#8b6914",l:"オレンジ〜茶",d:"要注意"}];
-const DRINKS=[{id:"water",e:"💧",l:"水"},{id:"tea",e:"🍵",l:"お茶・コーヒー"},{id:"protein",e:"🥛",l:"プロテイン"},{id:"juice",e:"🧃",l:"ジュース"},{id:"alcohol",e:"🍺",l:"アルコール"}];
-const DAMOUNTS=[{id:"cup",l:"コップ1杯",ml:200},{id:"mug",l:"マグカップ",ml:350},{id:"pet500",l:"ペットボトル500ml",ml:500},{id:"pet1000",l:"1リットル",ml:1000}];
+const DRINKS=[{id:"water",e:"💧",l:"水"},{id:"hakuyu",e:"♨️",l:"白湯"},{id:"tea",e:"🍵",l:"お茶"},{id:"coffee",e:"☕",l:"コーヒー"},{id:"protein",e:"🥛",l:"プロテイン"},{id:"premium_morning",e:"🌅",l:"朝食時商材"},{id:"premium_lunch",e:"☀️",l:"昼食時商材"},{id:"premium_dinner",e:"🌙",l:"夕食時商材"},{id:"premium_bedtime",e:"🛌",l:"就寝前商材"},{id:"essential_green",e:"🟢",l:"エッセンシャルG"},{id:"juice",e:"🧃",l:"ジュース"},{id:"alcohol",e:"🍺",l:"アルコール"},{id:"other",e:"🥤",l:"その他"}];
+const DAMOUNTS=[{id:"100",l:"100ml",ml:100},{id:"200",l:"200ml",ml:200},{id:"300",l:"300ml",ml:300},{id:"400",l:"400ml",ml:400},{id:"500",l:"500ml",ml:500},{id:"600",l:"600ml",ml:600},{id:"800",l:"800ml",ml:800},{id:"1000",l:"1000ml",ml:1000}];
 const MEALS=[{id:"breakfast",e:"🌅",l:"朝食"},{id:"lunch",e:"☀️",l:"昼食"},{id:"dinner",e:"🌙",l:"夕食"},{id:"snack",e:"🍪",l:"間食"}];
 const EXERCISES=[{id:"walk",e:"🚶",l:"ウォーキング"},{id:"run",e:"🏃",l:"ランニング"},{id:"gym",e:"🏋️",l:"筋トレ"},{id:"other",e:"⚡",l:"その他"}];
+const BOWEL_AMOUNTS=[{id:"small",l:"少なめ"},{id:"normal",l:"普通"},{id:"large",l:"多め"}];
+const EXERCISE_INTENSITY=[{id:"light",l:"軽め"},{id:"moderate",l:"普通"},{id:"hard",l:"きつめ"}];
 const TYPELABELS={bowel:"🚽 排便",urination:"💧 排尿",meal:"🍽️ 食事",drink:"🥤 飲み物",weight:"⚖️ 体重",sleep:"😴 睡眠",exercise:"🏃 運動",diary:"💡 気づき"};
 const now=()=>{const d=new Date();return{date:d.toLocaleDateString("ja-JP"),time:d.toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"}),iso:d.toISOString()}};
-const todayISO=()=>new Date().toISOString().split("T")[0];
+const todayISO=()=>{const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
 const nowHHMM=()=>{const d=new Date();return`${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`};
 const makeDateTime=(dStr,tStr)=>{try{const d=new Date(`${dStr}T${tStr}`);if(isNaN(d))return now();return{date:d.toLocaleDateString("ja-JP"),time:tStr,iso:d.toISOString()}}catch(e){return now()}};
 const toDateInput=s=>{try{const p=(s||"").split("/");return`${p[0]}-${(p[1]||"1").padStart(2,"0")}-${(p[2]||"1").padStart(2,"0")}`}catch(e){return todayISO()}};
-const getDetail=r=>{switch(r.type){case"bowel":return r.bristol?`スケール ${r.bristol}`:"記録済み";case"urination":{const u=UCOLORS.find(c=>c.id===r.colorId);return u?u.l:"記録済み"}case"meal":return `${(MEALS.find(m=>m.id===r.mealType)||{}).l||""} ${r.content||""}`;case"drink":{const c=DRINKS.find(c=>c.id===r.category);return `${c?c.l:""} ${r.amount||""}ml`}case"weight":return `${r.kg||""}kg / ${r.fat||""}%`;case"sleep":return `${r.bed||""} → ${r.wake||""}`;case"exercise":{const e=EXERCISES.find(e=>e.id===r.exerciseType);let s=e?e.l:"";if(r.minutes)s+=` ${r.minutes}分`;if(r.steps)s+=` ${r.steps}歩`;return s}case"diary":return(r.content||"").slice(0,30)+((r.content||"").length>30?"…":"");default:return""}};
+const getDetail=r=>{switch(r.type){case"bowel":{let s=r.bristol?"スケール "+r.bristol:"";if(r.bowelAmount){const a=BOWEL_AMOUNTS.find(a=>a.id===r.bowelAmount);if(a)s+=(s?" ":"")+a.l}return s||"記録済み"}case"urination":{const u=UCOLORS.find(c=>c.id===r.colorId);return u?u.l:"記録済み"}case"meal":return `${(MEALS.find(m=>m.id===r.mealType)||{}).l||""} ${r.content||""}`;case"drink":{const c=DRINKS.find(c=>c.id===r.category);return `${c?c.l:""} ${r.amount||""}ml`}case"weight":return `${r.kg||""}kg / ${r.fat||""}%`;case"sleep":return `${r.bed||""} → ${r.wake||""}`;case"exercise":{const e=EXERCISES.find(e=>e.id===r.exerciseType);let s=e?e.l:"";if(r.intensity){const i=EXERCISE_INTENSITY.find(i=>i.id===r.intensity);if(i)s+=" ["+i.l+"]"}if(r.minutes)s+=" "+r.minutes+"分";if(r.steps)s+=" "+r.steps+"歩";if(r.note)s+=" / "+r.note.slice(0,20);return s}case"diary":return(r.content||"").slice(0,30)+((r.content||"").length>30?"…":"");default:return""}};
 
 function App(){
   const[records,setRecords]=useState([]);
@@ -118,6 +120,7 @@ function App(){
   const[editName,setEditName]=useState("");
   const[editGas,setEditGas]=useState("");
   const[bristol,setBristol]=useState(null);
+  const[bAmount,setBAmount]=useState(null);
   const[uColor,setUColor]=useState(null);
   const[dCat,setDCat]=useState(null);
   const[dAmt,setDAmt]=useState(null);
@@ -130,22 +133,44 @@ function App(){
   const[exType,setExType]=useState(null);
   const[exMin,setExMin]=useState("");
   const[exSteps,setExSteps]=useState("");
+  const[exIntensity,setExIntensity]=useState(null);
+  const[exNote,setExNote]=useState("");
   const[diary,setDiary]=useState("");
   const[recTime,setRecTime]=useState(nowHHMM);const[recDate,setRecDate]=useState(todayISO);
+  const recDateManualRef=useRef(false);
+  const onRecDateChange=e=>{recDateManualRef.current=true;setRecDate(e.target.value)};
   const[editRec,setEditRec]=useState(null);
   const[editRecTime,setEditRecTime]=useState("");
   const[editRecDate,setEditRecDate]=useState("");
+  const[confirmDelId,setConfirmDelId]=useState(null);
 
   useEffect(()=>{try{const s=localStorage.getItem(STORAGE_KEY);if(s)setRecords(JSON.parse(s))}catch(e){}try{const s=localStorage.getItem(SETTINGS_KEY);if(s)setSettings(JSON.parse(s))}catch(e){}},[]);
   useEffect(()=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(records))},[records]);
   useEffect(()=>{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings))},[settings]);
+
+  useEffect(()=>{
+    const sync=()=>{
+      if(recDateManualRef.current)return;
+      const t=todayISO();
+      setRecDate(prev=>{
+        if(prev>=t)return prev;
+        setRecTime(nowHHMM());
+        return t;
+      });
+    };
+    const onVis=()=>{if(document.visibilityState==="visible")sync()};
+    document.addEventListener("visibilitychange",onVis);
+    window.addEventListener("focus",sync);
+    const iv=setInterval(sync,6e4);
+    return()=>{document.removeEventListener("visibilitychange",onVis);window.removeEventListener("focus",sync);clearInterval(iv)};
+  },[]);
 
   const addRec=useCallback((type,data)=>{setRecords(p=>[{id:Date.now(),type,...makeDateTime(recDate,recTime),...data},...p])},[recDate,recTime]);
   const showT=msg=>{setToast(msg);setTimeout(()=>setToast(null),2200)};
   const delRec=id=>{setRecords(p=>p.filter(r=>r.id!==id));showT("🗑️ 削除しました")};
   const delAll=()=>{setRecords([]);setConfirmDel(false);showT("🗑️ 全データを削除しました")};
   const updateRecTime=(id,dStr,tStr)=>{const dt=makeDateTime(dStr,tStr);setRecords(p=>p.map(r=>r.id===id?{...r,...dt}:r));showT("✏️ 日時を変更しました")};
-  const reset=()=>{setBristol(null);setUColor(null);setDCat(null);setDAmt(null);setMType(null);setMText("");setWVal("");setBFat("");setSBed("23:00");setSWake("07:00");setExType(null);setExMin("");setExSteps("");setDiary("");setRecTime(nowHHMM());setRecDate(todayISO())};
+  const reset=()=>{recDateManualRef.current=false;setBristol(null);setBAmount(null);setUColor(null);setDCat(null);setDAmt(null);setMType(null);setMText("");setWVal("");setBFat("");setSBed("23:00");setSWake("07:00");setExType(null);setExMin("");setExSteps("");setExIntensity(null);setExNote("");setDiary("");setRecTime(nowHHMM());setRecDate(todayISO())};
   const openM=t=>{reset();if(t==="settings"){setEditName(settings.userName);setEditGas(settings.gasUrl)}setModal(t)};
   const closeM=()=>{setModal(null);reset()};
 
@@ -191,18 +216,27 @@ function App(){
   const counts={b:todayRecs.filter(r=>r.type==="bowel").length,u:todayRecs.filter(r=>r.type==="urination").length,m:todayRecs.filter(r=>r.type==="meal").length,d:todayDrinks.reduce((s,r)=>s+(r.amount||0),0)};
   const dBreak=DRINKS.map(c=>({...c,t:todayDrinks.filter(r=>r.category===c.id).reduce((s,r)=>s+(r.amount||0),0)})).filter(c=>c.t>0);
 
-  const recItem=(r,showDate)=>h("div",{className:"record-item",key:r.id},
-    h("div",{className:"info"},
-      TYPELABELS[r.type]||r.type,
-      r.type==="urination"&&r.colorId?h("span",{className:"color-dot",style:{background:(UCOLORS.find(c=>c.id===r.colorId)||{}).c||"#ccc"}}):null,
-      h("span",{style:{color:"#999",fontSize:12,marginLeft:4}},getDetail(r)),
-      r.sentAt?h("span",{className:"sent-mark"},"✓"):null
+  const recItem=(r,showDate)=>h("div",{key:r.id,style:{marginBottom:6}},
+    h("div",{className:"record-item",style:{marginBottom:0}},
+      h("div",{className:"info"},
+        TYPELABELS[r.type]||r.type,
+        r.type==="urination"&&r.colorId?h("span",{className:"color-dot",style:{background:(UCOLORS.find(c=>c.id===r.colorId)||{}).c||"#ccc"}}):null,
+        h("span",{style:{color:"#999",fontSize:12,marginLeft:4}},getDetail(r)),
+        r.sentAt?h("span",{className:"sent-mark"},"✓"):null
+      ),
+      h("div",{className:"meta"},
+        showDate?h("div",{style:{textAlign:"right"}},h("div",{style:{fontSize:11,color:"#999"}},r.date),h("div",{style:{fontSize:12,color:"#555"}},r.time)):h("span",{className:"time"},r.time),
+        h("button",{className:"edit-time-btn",title:"日時を変更",onClick:()=>{setEditRec(r);setEditRecDate(toDateInput(r.date));setEditRecTime(r.time||nowHHMM());setModal("editTime")}},"✏️"),
+        h("button",{className:"del-btn",style:{fontSize:14,padding:"4px 8px"},onClick:()=>setConfirmDelId(confirmDelId===r.id?null:r.id)},"🗑️")
+      )
     ),
-    h("div",{className:"meta"},
-      showDate?h("div",{style:{textAlign:"right"}},h("div",{style:{fontSize:11,color:"#999"}},r.date),h("div",{style:{fontSize:12,color:"#555"}},r.time)):h("span",{className:"time"},r.time),
-      h("button",{className:"edit-time-btn",title:"日時を変更",onClick:()=>{setEditRec(r);setEditRecDate(toDateInput(r.date));setEditRecTime(r.time||nowHHMM());setModal("editTime")}},"✏️"),
-      h("button",{className:"del-btn",onClick:()=>delRec(r.id)},"✕")
-    )
+    confirmDelId===r.id?h("div",{className:"confirm-bar",style:{marginTop:4,marginBottom:0}},
+      h("span",null,"この記録を削除しますか？"),
+      h("div",{style:{display:"flex",gap:6}},
+        h("button",{className:"cancel",onClick:()=>setConfirmDelId(null)},"キャンセル"),
+        h("button",{className:"danger",onClick:()=>{delRec(r.id);setConfirmDelId(null)}},"削除")
+      )
+    ):null
   );
 
   const modalContent=()=>{
@@ -223,27 +257,29 @@ function App(){
     if(modal==="bowel")return h("div",null,
       h("p",{className:"hint"},"ブリストルスケール（任意）"),
       h("div",{className:"grid2"},BRISTOL.map(b=>h("button",{key:b.id,className:`btn ${bristol===b.id?"btn-selected":"btn-default"}`,onClick:()=>setBristol(bristol===b.id?null:b.id)},b.e," ",b.id,". ",b.l,h("span",{style:{fontSize:11,color:"#999",display:"block"}},b.d)))),
-      h("div",{className:"time-picker-section"},h("p",{style:{fontSize:12,color:"#999",marginBottom:6,fontWeight:600}},"📅 記録日時"),h("div",{style:{display:"flex",gap:8,marginBottom:12}},h("input",{type:"date",value:recDate,onChange:e=>setRecDate(e.target.value),className:"input",style:{flex:1,fontSize:14,padding:"10px 8px"}}),h("input",{type:"time",value:recTime,onChange:e=>setRecTime(e.target.value),className:"input",style:{width:110,fontSize:14,padding:"10px 8px"}}))),
-      h("button",{className:"btn btn-primary",onClick:()=>{addRec("bowel",{bristol});closeM();showT("🚽 排便を記録しました")}},"記録する")
+      h("p",{className:"hint",style:{marginTop:12}},"量（任意）"),
+      h("div",{className:"grid3"},BOWEL_AMOUNTS.map(a=>h("button",{key:a.id,className:`btn ${bAmount===a.id?"btn-selected":"btn-default"}`,onClick:()=>setBAmount(bAmount===a.id?null:a.id)},a.l))),
+      h("div",{className:"time-picker-section"},h("p",{style:{fontSize:12,color:"#999",marginBottom:6,fontWeight:600}},"📅 記録日時"),h("div",{style:{display:"flex",gap:8,marginBottom:12}},h("input",{type:"date",value:recDate,onChange:onRecDateChange,className:"input",style:{flex:1,fontSize:14,padding:"10px 8px"}}),h("input",{type:"time",value:recTime,onChange:e=>setRecTime(e.target.value),className:"input",style:{width:110,fontSize:14,padding:"10px 8px"}}))),
+      h("button",{className:"btn btn-primary",onClick:()=>{addRec("bowel",{bristol,bowelAmount:bAmount});closeM();showT("🚽 排便を記録しました")}},"記録する")
     );
     if(modal==="urination")return h("div",null,
       h("p",{className:"hint"},"尿の色（任意）"),
       h("div",{className:"grid3"},UCOLORS.map(u=>h("button",{key:u.id,className:`urine-btn ${uColor===u.id?"selected":""}`,onClick:()=>setUColor(uColor===u.id?null:u.id)},h("div",{className:"urine-swatch",style:{background:u.c,boxShadow:uColor===u.id?`0 0 12px ${u.c}66`:"none"}}),h("span",{style:{fontSize:11,fontWeight:600}},u.l),h("span",{style:{fontSize:10,color:"#999"}},u.d)))),
-      h("div",{className:"time-picker-section"},h("p",{style:{fontSize:12,color:"#999",marginBottom:6,fontWeight:600}},"📅 記録日時"),h("div",{style:{display:"flex",gap:8,marginBottom:12}},h("input",{type:"date",value:recDate,onChange:e=>setRecDate(e.target.value),className:"input",style:{flex:1,fontSize:14,padding:"10px 8px"}}),h("input",{type:"time",value:recTime,onChange:e=>setRecTime(e.target.value),className:"input",style:{width:110,fontSize:14,padding:"10px 8px"}}))),
+      h("div",{className:"time-picker-section"},h("p",{style:{fontSize:12,color:"#999",marginBottom:6,fontWeight:600}},"📅 記録日時"),h("div",{style:{display:"flex",gap:8,marginBottom:12}},h("input",{type:"date",value:recDate,onChange:onRecDateChange,className:"input",style:{flex:1,fontSize:14,padding:"10px 8px"}}),h("input",{type:"time",value:recTime,onChange:e=>setRecTime(e.target.value),className:"input",style:{width:110,fontSize:14,padding:"10px 8px"}}))),
       h("button",{className:"btn btn-primary",onClick:()=>{addRec("urination",{colorId:uColor});closeM();showT("💧 排尿を記録しました")}},"記録する")
     );
     if(modal==="meal")return h("div",null,
       h("div",{className:"grid4"},MEALS.map(m=>h("button",{key:m.id,className:`btn ${mType===m.id?"btn-selected":"btn-default"}`,onClick:()=>setMType(m.id)},m.e,h("span",{style:{display:"block",fontSize:12}},m.l)))),
       h("textarea",{className:"input",value:mText,onChange:e=>setMText(e.target.value),placeholder:"何を食べた？（任意）",rows:3,style:{marginBottom:12}}),
-      h("div",{className:"time-picker-section"},h("p",{style:{fontSize:12,color:"#999",marginBottom:6,fontWeight:600}},"📅 記録日時"),h("div",{style:{display:"flex",gap:8,marginBottom:12}},h("input",{type:"date",value:recDate,onChange:e=>setRecDate(e.target.value),className:"input",style:{flex:1,fontSize:14,padding:"10px 8px"}}),h("input",{type:"time",value:recTime,onChange:e=>setRecTime(e.target.value),className:"input",style:{width:110,fontSize:14,padding:"10px 8px"}}))),
+      h("div",{className:"time-picker-section"},h("p",{style:{fontSize:12,color:"#999",marginBottom:6,fontWeight:600}},"📅 記録日時"),h("div",{style:{display:"flex",gap:8,marginBottom:12}},h("input",{type:"date",value:recDate,onChange:onRecDateChange,className:"input",style:{flex:1,fontSize:14,padding:"10px 8px"}}),h("input",{type:"time",value:recTime,onChange:e=>setRecTime(e.target.value),className:"input",style:{width:110,fontSize:14,padding:"10px 8px"}}))),
       h("button",{className:"btn btn-primary",onClick:()=>{if(!mType){showT("食事の種類を選んでください");return}addRec("meal",{mealType:mType,content:mText});closeM();showT("🍽️ 食事を記録しました")}},"記録する")
     );
     if(modal==="drink")return h("div",null,
       h("p",{className:"hint"},"種類"),
       h("div",{className:"grid3"},DRINKS.map(d=>h("button",{key:d.id,className:`btn ${dCat===d.id?"btn-selected":"btn-default"}`,onClick:()=>setDCat(d.id)},d.e,h("span",{style:{display:"block",fontSize:11}},d.l)))),
       h("p",{className:"hint"},"量"),
-      h("div",{className:"grid2"},DAMOUNTS.map(a=>h("button",{key:a.id,className:`btn ${dAmt===a.ml?"btn-selected":"btn-default"}`,onClick:()=>setDAmt(a.ml)},a.l))),
-      h("div",{className:"time-picker-section"},h("p",{style:{fontSize:12,color:"#999",marginBottom:6,fontWeight:600}},"📅 記録日時"),h("div",{style:{display:"flex",gap:8,marginBottom:12}},h("input",{type:"date",value:recDate,onChange:e=>setRecDate(e.target.value),className:"input",style:{flex:1,fontSize:14,padding:"10px 8px"}}),h("input",{type:"time",value:recTime,onChange:e=>setRecTime(e.target.value),className:"input",style:{width:110,fontSize:14,padding:"10px 8px"}}))),
+      h("div",{className:"grid4"},DAMOUNTS.map(a=>h("button",{key:a.id,className:`btn ${dAmt===a.ml?"btn-selected":"btn-default"}`,onClick:()=>setDAmt(a.ml)},a.l))),
+      h("div",{className:"time-picker-section"},h("p",{style:{fontSize:12,color:"#999",marginBottom:6,fontWeight:600}},"📅 記録日時"),h("div",{style:{display:"flex",gap:8,marginBottom:12}},h("input",{type:"date",value:recDate,onChange:onRecDateChange,className:"input",style:{flex:1,fontSize:14,padding:"10px 8px"}}),h("input",{type:"time",value:recTime,onChange:e=>setRecTime(e.target.value),className:"input",style:{width:110,fontSize:14,padding:"10px 8px"}}))),
       h("button",{className:"btn btn-primary",onClick:()=>{if(!dCat){showT("飲み物の種類を選んでください");return}addRec("drink",{category:dCat,amount:dAmt||200});closeM();showT("🥤 飲み物を記録しました")}},"記録する")
     );
     if(modal==="weight")return h("div",null,
@@ -251,7 +287,7 @@ function App(){
         h("div",{style:{flex:1}},h("label",{style:{fontSize:13,color:"#555",display:"block",marginBottom:6}},"体重 (kg)"),h("input",{className:"input",type:"number",step:"0.1",value:wVal,onChange:e=>setWVal(e.target.value),placeholder:"65.0"})),
         h("div",{style:{flex:1}},h("label",{style:{fontSize:13,color:"#555",display:"block",marginBottom:6}},"体脂肪率 (%)"),h("input",{className:"input",type:"number",step:"0.1",value:bFat,onChange:e=>setBFat(e.target.value),placeholder:"20.0"}))
       ),
-      h("div",{className:"time-picker-section"},h("p",{style:{fontSize:12,color:"#999",marginBottom:6,fontWeight:600}},"📅 記録日時"),h("div",{style:{display:"flex",gap:8,marginBottom:12}},h("input",{type:"date",value:recDate,onChange:e=>setRecDate(e.target.value),className:"input",style:{flex:1,fontSize:14,padding:"10px 8px"}}),h("input",{type:"time",value:recTime,onChange:e=>setRecTime(e.target.value),className:"input",style:{width:110,fontSize:14,padding:"10px 8px"}}))),
+      h("div",{className:"time-picker-section"},h("p",{style:{fontSize:12,color:"#999",marginBottom:6,fontWeight:600}},"📅 記録日時"),h("div",{style:{display:"flex",gap:8,marginBottom:12}},h("input",{type:"date",value:recDate,onChange:onRecDateChange,className:"input",style:{flex:1,fontSize:14,padding:"10px 8px"}}),h("input",{type:"time",value:recTime,onChange:e=>setRecTime(e.target.value),className:"input",style:{width:110,fontSize:14,padding:"10px 8px"}}))),
       h("button",{className:"btn btn-primary",onClick:()=>{if(!wVal){showT("体重を入力してください");return}addRec("weight",{kg:parseFloat(wVal),fat:bFat?parseFloat(bFat):null});closeM();showT("⚖️ 体重を記録しました")}},"記録する")
     );
     if(modal==="sleep")return h("div",null,
@@ -260,17 +296,20 @@ function App(){
         h("div",{style:{paddingBottom:18,fontSize:22,color:"#001E61",fontWeight:700}},"→"),
         h("div",{style:{flex:1}},h("label",{style:{fontSize:14,color:"#001E61",display:"block",marginBottom:8,fontWeight:700}},"☀️ 起床"),h("input",{className:"input time-input",type:"time",value:sWake,onChange:e=>setSWake(e.target.value)}))
       ),
-      h("div",{className:"time-picker-section"},h("p",{style:{fontSize:12,color:"#999",marginBottom:6,fontWeight:600}},"📅 記録日時"),h("div",{style:{display:"flex",gap:8,marginBottom:12}},h("input",{type:"date",value:recDate,onChange:e=>setRecDate(e.target.value),className:"input",style:{flex:1,fontSize:14,padding:"10px 8px"}}),h("input",{type:"time",value:recTime,onChange:e=>setRecTime(e.target.value),className:"input",style:{width:110,fontSize:14,padding:"10px 8px"}}))),
+      h("div",{className:"time-picker-section"},h("p",{style:{fontSize:12,color:"#999",marginBottom:6,fontWeight:600}},"📅 記録日時"),h("div",{style:{display:"flex",gap:8,marginBottom:12}},h("input",{type:"date",value:recDate,onChange:onRecDateChange,className:"input",style:{flex:1,fontSize:14,padding:"10px 8px"}}),h("input",{type:"time",value:recTime,onChange:e=>setRecTime(e.target.value),className:"input",style:{width:110,fontSize:14,padding:"10px 8px"}}))),
       h("button",{className:"btn btn-primary",onClick:()=>{addRec("sleep",{bed:sBed,wake:sWake});closeM();showT("😴 睡眠を記録しました")}},"記録する")
     );
     if(modal==="exercise")return h("div",null,
       h("div",{className:"grid4"},EXERCISES.map(e=>h("button",{key:e.id,className:`btn ${exType===e.id?"btn-selected":"btn-default"}`,onClick:()=>setExType(e.id)},e.e,h("span",{style:{display:"block",fontSize:11}},e.l)))),
-      h("div",{style:{display:"flex",gap:12,marginBottom:16}},
+      h("p",{className:"hint",style:{marginTop:4}},"強度（任意）"),
+      h("div",{className:"grid3"},EXERCISE_INTENSITY.map(i=>h("button",{key:i.id,className:`btn ${exIntensity===i.id?"btn-selected":"btn-default"}`,onClick:()=>setExIntensity(exIntensity===i.id?null:i.id)},i.l))),
+      h("div",{style:{display:"flex",gap:12,marginBottom:12}},
         h("div",{style:{flex:1}},h("label",{style:{fontSize:12,color:"#555",display:"block",marginBottom:4}},"時間（分）"),h("input",{className:"input",type:"number",value:exMin,onChange:e=>setExMin(e.target.value),placeholder:"30"})),
         h("div",{style:{flex:1}},h("label",{style:{fontSize:12,color:"#555",display:"block",marginBottom:4}},"歩数"),h("input",{className:"input",type:"number",value:exSteps,onChange:e=>setExSteps(e.target.value),placeholder:"8000"}))
       ),
-      h("div",{className:"time-picker-section"},h("p",{style:{fontSize:12,color:"#999",marginBottom:6,fontWeight:600}},"📅 記録日時"),h("div",{style:{display:"flex",gap:8,marginBottom:12}},h("input",{type:"date",value:recDate,onChange:e=>setRecDate(e.target.value),className:"input",style:{flex:1,fontSize:14,padding:"10px 8px"}}),h("input",{type:"time",value:recTime,onChange:e=>setRecTime(e.target.value),className:"input",style:{width:110,fontSize:14,padding:"10px 8px"}}))),
-      h("button",{className:"btn btn-primary",onClick:()=>{if(!exType){showT("運動の種類を選んでください");return}addRec("exercise",{exerciseType:exType,minutes:exMin?parseInt(exMin):null,steps:exSteps?parseInt(exSteps):null});closeM();showT("🏃 運動を記録しました")}},"記録する")
+      h("textarea",{className:"input",value:exNote,onChange:e=>setExNote(e.target.value),placeholder:"補足メモ（例: 自重トレ・HIIT・強度高めなど）",rows:2,style:{marginBottom:12}}),
+      h("div",{className:"time-picker-section"},h("p",{style:{fontSize:12,color:"#999",marginBottom:6,fontWeight:600}},"📅 記録日時"),h("div",{style:{display:"flex",gap:8,marginBottom:12}},h("input",{type:"date",value:recDate,onChange:onRecDateChange,className:"input",style:{flex:1,fontSize:14,padding:"10px 8px"}}),h("input",{type:"time",value:recTime,onChange:e=>setRecTime(e.target.value),className:"input",style:{width:110,fontSize:14,padding:"10px 8px"}}))),
+      h("button",{className:"btn btn-primary",onClick:()=>{if(!exType){showT("運動の種類を選んでください");return}addRec("exercise",{exerciseType:exType,minutes:exMin?parseInt(exMin):null,steps:exSteps?parseInt(exSteps):null,intensity:exIntensity,note:exNote||null});closeM();showT("🏃 運動を記録しました")}},"記録する")
     );
     if(modal==="editTime"&&editRec)return h("div",null,
       h("p",{style:{fontSize:13,color:"#555",marginBottom:16}},TYPELABELS[editRec.type]||editRec.type," の記録日時を変更します"),
@@ -281,7 +320,7 @@ function App(){
     if(modal==="diary")return h("div",null,
       h("p",{className:"hint"},"プログラム中に感じた変化や気づきを記録しましょう"),
       h("textarea",{className:"input",value:diary,onChange:e=>setDiary(e.target.value),placeholder:"体調の変化、気になったこと、新しく気づいたことなど…",rows:5,style:{marginBottom:12}}),
-      h("div",{className:"time-picker-section"},h("p",{style:{fontSize:12,color:"#999",marginBottom:6,fontWeight:600}},"📅 記録日時"),h("div",{style:{display:"flex",gap:8,marginBottom:12}},h("input",{type:"date",value:recDate,onChange:e=>setRecDate(e.target.value),className:"input",style:{flex:1,fontSize:14,padding:"10px 8px"}}),h("input",{type:"time",value:recTime,onChange:e=>setRecTime(e.target.value),className:"input",style:{width:110,fontSize:14,padding:"10px 8px"}}))),
+      h("div",{className:"time-picker-section"},h("p",{style:{fontSize:12,color:"#999",marginBottom:6,fontWeight:600}},"📅 記録日時"),h("div",{style:{display:"flex",gap:8,marginBottom:12}},h("input",{type:"date",value:recDate,onChange:onRecDateChange,className:"input",style:{flex:1,fontSize:14,padding:"10px 8px"}}),h("input",{type:"time",value:recTime,onChange:e=>setRecTime(e.target.value),className:"input",style:{width:110,fontSize:14,padding:"10px 8px"}}))),
       h("button",{className:"btn btn-primary",onClick:()=>{if(!diary.trim()){showT("何か書いてください");return}addRec("diary",{content:diary});closeM();showT("💡 気づきを記録しました")}},"記録する")
     );
     return null;

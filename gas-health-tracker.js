@@ -138,11 +138,14 @@ function getDetailString(r) {
     }
     case "urination":
       return r.colorId ? "色:" + r.colorId : "記録済み";
-    case "meal":
-      return (r.mealType || "") + ": " + (r.content || "");
+    case "meal": {
+      const mealLabels = { breakfast: "朝食", lunch: "昼食", dinner: "夕食", snack: "間食", premium_morning: "朝食時商材", premium_lunch: "昼食時商材", premium_dinner: "夕食時商材" };
+      return (mealLabels[r.mealType] || r.mealType || "") + (r.content ? ": " + r.content : "");
+    }
     case "drink": {
-      const cats = { water: "水", hakuyu: "白湯", tea: "お茶", coffee: "コーヒー", protein: "プロテイン", premium_morning: "朝食時商材", premium_lunch: "昼食時商材", premium_dinner: "夕食時商材", premium_bedtime: "就寝前商材", essential_green: "エッセンシャルG", juice: "ジュース", alcohol: "アルコール", other: "その他" };
-      return (cats[r.category] || r.category || "") + " " + (r.amount || "") + "ml";
+      const cats = { essential_green: "E.グリーン", water: "水", hakuyu: "白湯", tea: "お茶", coffee: "コーヒー", premium_bedtime: "就寝前ドリンク", juice: "ジュース", alcohol: "アルコール", other: "その他" };
+      const label = r.category === "other" && r.otherText ? r.otherText : (cats[r.category] || r.category || "");
+      return label + " " + (r.amount || "") + "ml";
     }
     case "weight":
       return "体重" + (r.kg || "") + "kg 体脂肪" + (r.fat || "") + "%";

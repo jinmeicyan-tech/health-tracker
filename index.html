@@ -62,7 +62,7 @@ textarea{resize:vertical}
 .color-dot{display:inline-block;width:14px;height:14px;border-radius:50%;border:1px solid #E5E5EA}
 .sent-mark{font-size:10px;color:#2d8a2d;margin-left:2px}
 .overlay{position:fixed;inset:0;background:rgba(0,30,97,0.18);z-index:100;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;backdrop-filter:blur(2px)}
-.modal{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:85vh;overflow:auto;padding:20px 20px 32px;animation:slideUp .3s ease;box-shadow:0 -4px 30px rgba(0,0,0,0.1)}
+.modal{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:65vh;overflow:auto;padding:20px 20px 32px;animation:slideUp .3s ease;box-shadow:0 -4px 30px rgba(0,0,0,0.1)}
 .modal .handle{width:40px;height:4px;background:#E5E5EA;border-radius:2px;margin:0 auto 16px}
 .modal h2{margin:0 0 16px;font-size:18px;color:#001E61;font-weight:700}
 .modal p.hint{color:#999;font-size:13px;margin:0 0 12px}
@@ -95,9 +95,9 @@ const {useState,useEffect,useCallback,useRef,createElement:h}=React;
 const STORAGE_KEY="health_tracker_data",SETTINGS_KEY="health_tracker_settings";
 const BRISTOL=[{id:1,e:"🟤",l:"コロコロ",d:"硬い塊"},{id:2,e:"🟫",l:"ゴツゴツ",d:"塊が連なった"},{id:3,e:"🍫",l:"ひび割れ",d:"やや硬い"},{id:4,e:"🌿",l:"普通",d:"なめらか"},{id:5,e:"☁️",l:"やわらか",d:"柔らかい塊"},{id:6,e:"💧",l:"泥状",d:"ふにゃふにゃ"},{id:7,e:"🌊",l:"水様",d:"水っぽい"}];
 const UCOLORS=[{id:1,c:"#f5f5dc",l:"透明〜薄黄",d:"十分な水分"},{id:2,c:"#f0e68c",l:"薄い黄色",d:"正常"},{id:3,c:"#daa520",l:"黄色",d:"正常"},{id:4,c:"#b8860b",l:"濃い黄色",d:"水分やや不足"},{id:5,c:"#cd853f",l:"琥珀色",d:"水分不足"},{id:6,c:"#8b6914",l:"オレンジ〜茶",d:"要注意"}];
-const DRINKS=[{id:"water",e:"💧",l:"水"},{id:"hakuyu",e:"♨️",l:"白湯"},{id:"tea",e:"🍵",l:"お茶"},{id:"coffee",e:"☕",l:"コーヒー"},{id:"protein",e:"🥛",l:"プロテイン"},{id:"premium_morning",e:"🌅",l:"朝食時商材"},{id:"premium_lunch",e:"☀️",l:"昼食時商材"},{id:"premium_dinner",e:"🌙",l:"夕食時商材"},{id:"premium_bedtime",e:"🛌",l:"就寝前商材"},{id:"essential_green",e:"🟢",l:"エッセンシャルG"},{id:"juice",e:"🧃",l:"ジュース"},{id:"alcohol",e:"🍺",l:"アルコール"},{id:"other",e:"🥤",l:"その他"}];
+const DRINKS=[{id:"essential_green",e:"🟢",l:"E.グリーン"},{id:"water",e:"💧",l:"水"},{id:"hakuyu",e:"♨️",l:"白湯"},{id:"tea",e:"🍵",l:"お茶"},{id:"coffee",e:"☕",l:"コーヒー"},{id:"premium_bedtime",e:"🛌",l:"就寝前ドリンク"},{id:"juice",e:"🧃",l:"ジュース"},{id:"alcohol",e:"🍺",l:"アルコール"},{id:"other",e:"🥤",l:"その他"}];
 const DAMOUNTS=[{id:"100",l:"100ml",ml:100},{id:"200",l:"200ml",ml:200},{id:"300",l:"300ml",ml:300},{id:"400",l:"400ml",ml:400},{id:"500",l:"500ml",ml:500},{id:"600",l:"600ml",ml:600},{id:"800",l:"800ml",ml:800},{id:"1000",l:"1000ml",ml:1000}];
-const MEALS=[{id:"breakfast",e:"🌅",l:"朝食"},{id:"lunch",e:"☀️",l:"昼食"},{id:"dinner",e:"🌙",l:"夕食"},{id:"snack",e:"🍪",l:"間食"}];
+const MEALS=[{id:"breakfast",e:"🌅",l:"朝食"},{id:"lunch",e:"☀️",l:"昼食"},{id:"dinner",e:"🌙",l:"夕食"},{id:"snack",e:"🍪",l:"間食"},{id:"premium_morning",e:"🌅",l:"朝食時商材"},{id:"premium_lunch",e:"☀️",l:"昼食時商材"},{id:"premium_dinner",e:"🌙",l:"夕食時商材"}];
 const EXERCISES=[{id:"walk",e:"🚶",l:"ウォーキング"},{id:"run",e:"🏃",l:"ランニング"},{id:"gym",e:"🏋️",l:"筋トレ"},{id:"other",e:"⚡",l:"その他"}];
 const BOWEL_AMOUNTS=[{id:"small",l:"少なめ"},{id:"normal",l:"普通"},{id:"large",l:"多め"}];
 const EXERCISE_INTENSITY=[{id:"light",l:"軽め"},{id:"moderate",l:"普通"},{id:"hard",l:"きつめ"}];
@@ -107,7 +107,7 @@ const todayISO=()=>{const d=new Date();return`${d.getFullYear()}-${String(d.getM
 const nowHHMM=()=>{const d=new Date();return`${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`};
 const makeDateTime=(dStr,tStr)=>{try{const d=new Date(`${dStr}T${tStr}`);if(isNaN(d))return now();return{date:d.toLocaleDateString("ja-JP"),time:tStr,iso:d.toISOString()}}catch(e){return now()}};
 const toDateInput=s=>{try{const p=(s||"").split("/");return`${p[0]}-${(p[1]||"1").padStart(2,"0")}-${(p[2]||"1").padStart(2,"0")}`}catch(e){return todayISO()}};
-const getDetail=r=>{switch(r.type){case"bowel":{let s=r.bristol?"スケール "+r.bristol:"";if(r.bowelAmount){const a=BOWEL_AMOUNTS.find(a=>a.id===r.bowelAmount);if(a)s+=(s?" ":"")+a.l}return s||"記録済み"}case"urination":{const u=UCOLORS.find(c=>c.id===r.colorId);return u?u.l:"記録済み"}case"meal":return `${(MEALS.find(m=>m.id===r.mealType)||{}).l||""} ${r.content||""}`;case"drink":{const c=DRINKS.find(c=>c.id===r.category);return `${c?c.l:""} ${r.amount||""}ml`}case"weight":return `${r.kg||""}kg / ${r.fat||""}%`;case"sleep":return `${r.bed||""} → ${r.wake||""}`;case"exercise":{const e=EXERCISES.find(e=>e.id===r.exerciseType);let s=e?e.l:"";if(r.intensity){const i=EXERCISE_INTENSITY.find(i=>i.id===r.intensity);if(i)s+=" ["+i.l+"]"}if(r.minutes)s+=" "+r.minutes+"分";if(r.steps)s+=" "+r.steps+"歩";if(r.note)s+=" / "+r.note.slice(0,20);return s}case"diary":return(r.content||"").slice(0,30)+((r.content||"").length>30?"…":"");default:return""}};
+const getDetail=r=>{switch(r.type){case"bowel":{let s=r.bristol?"スケール "+r.bristol:"";if(r.bowelAmount){const a=BOWEL_AMOUNTS.find(a=>a.id===r.bowelAmount);if(a)s+=(s?" ":"")+a.l}return s||"記録済み"}case"urination":{const u=UCOLORS.find(c=>c.id===r.colorId);return u?u.l:"記録済み"}case"meal":return `${(MEALS.find(m=>m.id===r.mealType)||{}).l||""} ${r.content||""}`;case"drink":{const c=DRINKS.find(c=>c.id===r.category);const label=r.category==="other"&&r.otherText?r.otherText:(c?c.l:"");return label+" "+(r.amount||"")+"ml"}case"weight":return `${r.kg||""}kg / ${r.fat||""}%`;case"sleep":return `${r.bed||""} → ${r.wake||""}`;case"exercise":{const e=EXERCISES.find(e=>e.id===r.exerciseType);let s=e?e.l:"";if(r.intensity){const i=EXERCISE_INTENSITY.find(i=>i.id===r.intensity);if(i)s+=" ["+i.l+"]"}if(r.minutes)s+=" "+r.minutes+"分";if(r.steps)s+=" "+r.steps+"歩";if(r.note)s+=" / "+r.note.slice(0,20);return s}case"diary":return(r.content||"").slice(0,30)+((r.content||"").length>30?"…":"");default:return""}};
 
 function App(){
   const[records,setRecords]=useState([]);
@@ -124,6 +124,7 @@ function App(){
   const[uColor,setUColor]=useState(null);
   const[dCat,setDCat]=useState(null);
   const[dAmt,setDAmt]=useState(null);
+  const[dOtherText,setDOtherText]=useState("");
   const[mType,setMType]=useState(null);
   const[mText,setMText]=useState("");
   const[wVal,setWVal]=useState("");
@@ -170,7 +171,7 @@ function App(){
   const delRec=id=>{setRecords(p=>p.filter(r=>r.id!==id));showT("🗑️ 削除しました")};
   const delAll=()=>{setRecords([]);setConfirmDel(false);showT("🗑️ 全データを削除しました")};
   const updateRecTime=(id,dStr,tStr)=>{const dt=makeDateTime(dStr,tStr);setRecords(p=>p.map(r=>r.id===id?{...r,...dt}:r));showT("✏️ 日時を変更しました")};
-  const reset=()=>{recDateManualRef.current=false;setBristol(null);setBAmount(null);setUColor(null);setDCat(null);setDAmt(null);setMType(null);setMText("");setWVal("");setBFat("");setSBed("23:00");setSWake("07:00");setExType(null);setExMin("");setExSteps("");setExIntensity(null);setExNote("");setDiary("");setRecTime(nowHHMM());setRecDate(todayISO())};
+  const reset=()=>{recDateManualRef.current=false;setBristol(null);setBAmount(null);setUColor(null);setDCat(null);setDAmt(null);setDOtherText("");setMType(null);setMText("");setWVal("");setBFat("");setSBed("23:00");setSWake("07:00");setExType(null);setExMin("");setExSteps("");setExIntensity(null);setExNote("");setDiary("");setRecTime(nowHHMM());setRecDate(todayISO())};
   const openM=t=>{reset();if(t==="settings"){setEditName(settings.userName);setEditGas(settings.gasUrl)}setModal(t)};
   const closeM=()=>{setModal(null);reset()};
 
@@ -277,10 +278,11 @@ function App(){
     if(modal==="drink")return h("div",null,
       h("p",{className:"hint"},"種類"),
       h("div",{className:"grid3"},DRINKS.map(d=>h("button",{key:d.id,className:`btn ${dCat===d.id?"btn-selected":"btn-default"}`,onClick:()=>setDCat(d.id)},d.e,h("span",{style:{display:"block",fontSize:11}},d.l)))),
+      dCat==="other"?h("input",{className:"input",type:"text",value:dOtherText,onChange:e=>setDOtherText(e.target.value),placeholder:"飲み物名を入力（例: 豆乳・スムージーなど）",style:{marginBottom:8}}):null,
       h("p",{className:"hint"},"量"),
       h("div",{className:"grid4"},DAMOUNTS.map(a=>h("button",{key:a.id,className:`btn ${dAmt===a.ml?"btn-selected":"btn-default"}`,onClick:()=>setDAmt(a.ml)},a.l))),
       h("div",{className:"time-picker-section"},h("p",{style:{fontSize:12,color:"#999",marginBottom:6,fontWeight:600}},"📅 記録日時"),h("div",{style:{display:"flex",gap:8,marginBottom:12}},h("input",{type:"date",value:recDate,onChange:onRecDateChange,className:"input",style:{flex:1,fontSize:14,padding:"10px 8px"}}),h("input",{type:"time",value:recTime,onChange:e=>setRecTime(e.target.value),className:"input",style:{width:110,fontSize:14,padding:"10px 8px"}}))),
-      h("button",{className:"btn btn-primary",onClick:()=>{if(!dCat){showT("飲み物の種類を選んでください");return}addRec("drink",{category:dCat,amount:dAmt||200});closeM();showT("🥤 飲み物を記録しました")}},"記録する")
+      h("button",{className:"btn btn-primary",onClick:()=>{if(!dCat){showT("飲み物の種類を選んでください");return}addRec("drink",{category:dCat,amount:dAmt||200,otherText:dCat==="other"&&dOtherText?dOtherText:null});closeM();showT("🥤 飲み物を記録しました")}},"記録する")
     );
     if(modal==="weight")return h("div",null,
       h("div",{style:{display:"flex",gap:12,marginBottom:16}},
@@ -307,7 +309,7 @@ function App(){
         h("div",{style:{flex:1}},h("label",{style:{fontSize:12,color:"#555",display:"block",marginBottom:4}},"時間（分）"),h("input",{className:"input",type:"number",value:exMin,onChange:e=>setExMin(e.target.value),placeholder:"30"})),
         h("div",{style:{flex:1}},h("label",{style:{fontSize:12,color:"#555",display:"block",marginBottom:4}},"歩数"),h("input",{className:"input",type:"number",value:exSteps,onChange:e=>setExSteps(e.target.value),placeholder:"8000"}))
       ),
-      h("textarea",{className:"input",value:exNote,onChange:e=>setExNote(e.target.value),placeholder:"補足メモ（例: 自重トレ・HIIT・強度高めなど）",rows:2,style:{marginBottom:12}}),
+      exType==="other"?h("input",{className:"input",type:"text",value:exNote,onChange:e=>setExNote(e.target.value),placeholder:"内容を入力（例: 自重トレ・ストレッチなど）",style:{marginBottom:12}}):null,
       h("div",{className:"time-picker-section"},h("p",{style:{fontSize:12,color:"#999",marginBottom:6,fontWeight:600}},"📅 記録日時"),h("div",{style:{display:"flex",gap:8,marginBottom:12}},h("input",{type:"date",value:recDate,onChange:onRecDateChange,className:"input",style:{flex:1,fontSize:14,padding:"10px 8px"}}),h("input",{type:"time",value:recTime,onChange:e=>setRecTime(e.target.value),className:"input",style:{width:110,fontSize:14,padding:"10px 8px"}}))),
       h("button",{className:"btn btn-primary",onClick:()=>{if(!exType){showT("運動の種類を選んでください");return}addRec("exercise",{exerciseType:exType,minutes:exMin?parseInt(exMin):null,steps:exSteps?parseInt(exSteps):null,intensity:exIntensity,note:exNote||null});closeM();showT("🏃 運動を記録しました")}},"記録する")
     );
